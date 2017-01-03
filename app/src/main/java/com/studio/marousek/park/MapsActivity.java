@@ -1,5 +1,6 @@
 package com.studio.marousek.park;
 
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -10,6 +11,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -74,12 +76,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         try {
-            Location l = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(l.getLatitude(), l.getLongitude())));
+            mMap.setMyLocationEnabled(true);
+            Criteria c = new Criteria();
+            Location l = locationManager.getLastKnownLocation(locationManager.getBestProvider(c, false));
+            if(l != null) {
+                LatLng latLng = new LatLng(l.getLatitude(), l.getLongitude());
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 13));
+
+                CameraPosition position = new CameraPosition.Builder()
+                        .target(latLng)
+                        .zoom(17)
+                        .build();
+                googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
+            }
         }
         catch (SecurityException e)
         {
             //once again, doing nothing for now...
+            e.printStackTrace();
         }
 
         // Add a marker in Sydney and move the camera
